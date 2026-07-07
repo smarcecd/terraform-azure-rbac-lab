@@ -152,13 +152,13 @@ Exports: RBAC_Lab_Report.txt
 ✘ Cannot stop/start VM  
 
 
-**SupportTech (VM Contributor)** 
-✔ Can start/stop/restart VM 
-✘ Cannot view or modify RBAC 
+**SupportTech (VM Contributor)**  
+✔ Can start/stop/restart VM  
+✘ Cannot view or modify RBAC  
 
-**SysAdmin (Owner)** 
-✔ Full control 
-✔ Can manage RBAC 
+**SysAdmin (Owner)**  
+✔ Full control  
+✔ Can manage RBAC  
 
 ---
 
