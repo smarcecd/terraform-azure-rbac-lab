@@ -9,32 +9,36 @@
 
 ---
 
-# 📌 Overview
-
 This lab implements Azure Role-Based Access Control (RBAC) to enforce least privilege on a single virtual machine (FS01). While Lab 1 focused on NTFS permissions inside the VM, this lab controls who can manage the VM itself from Azure.
 
 You will create three personas, assign three roles, scope them to one VM, validate enforcement, and test each identity using the Azure CLI.
 
 ---
 
-# 🎯 Business Problem
+# 🔗 Lab Overview
 
-Organizations need strict separation of duties:
-- A SysAdmin must fully manage a VM, including RBAC.
-- A Support Technician must restart a VM but never delete or reconfigure it.
-- An Auditor must view VM details but perform no actions.
-- Azure RBAC solves this by assigning precise permissions at the resource level.
+This lab is fully self‑contained. All Terraform and PowerShell files are created locally—no external repo required.
+
+| Component |	Details |
+|---|---|
+| Purpose | 	Enforce least‑privilege access on VM FS01 using Azure RBAC.| 
+| Personas | 	SysAdmin (Owner), SupportTech (VM Contributor), Auditor (Reader).| 
+| Scope | 	RBAC applied only to FS01’s resource ID — not the RG, not other VMs.| 
+| Terraform Usage | 	Reads Lab 1 resources, assigns RBAC roles, outputs VM + role IDs.| 
+| Data Sources | 	azurerm_resource_group, azurerm_virtual_machine (FS01).| 
+| Inputs Required | 	Three Azure AD Object IDs (SysAdmin, SupportTech, Auditor).| 
+| Scripts Included | 	01-get-object-ids.ps1 (lookup), validate-lab.ps1 (testing).| 
+| Validation | 	Azure CLI tests + permission matrix export.| 
+| Outcome | 	Clear separation of duties: full control, limited control, view-only.| 
+
 
 ---
 
-# 🏗 Architecture
+## 🎯 Purpose of This Lab
 
-RBAC operates at the Azure Resource Manager control plane, separate from NTFS.
-All role assignments are scoped to FS01’s resource ID only, ensuring:
+The purpose of this lab is to demonstrate how Azure Role‑Based Access Control (RBAC) enforces least‑privilege access at the Azure control plane. While Lab 1 focused on NTFS permissions inside the VM, this lab shifts to the Azure Resource Manager layer, showing how identity, roles, and scope determine what each persona can do to the VM itself.
 
-- No permissions apply to DC01 or CLIENT01
-- No permissions apply to the resource group
-- Blast radius is minimized
+You use Terraform to assign three distinct roles to three Azure AD identities, each scoped only to FS01, ensuring tight separation of duties and preventing privilege escalation across the resource group or other machines. The lab concludes with real‑world validation using Azure CLI and PowerShell to confirm that each persona’s permissions behave exactly as intended.
 
 ---
 
@@ -48,6 +52,25 @@ All role assignments are scoped to FS01’s resource ID only, ensuring:
 | Azure AD Object IDs |	Required for RBAC — email addresses are not sufficient. |
 | Azure CLI role testing |	Confirms least privilege is enforced, not assumed.|
 | Structured validation report | Professional standard for compliance and audits. |
+
+---
+
+
+## ✅ Prerequisites
+
+Before starting, ensure the following are ready:
+
+- [ ] [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) installed and authenticated (`az login`)
+- [ ] [Terraform](https://developer.hashicorp.com/terraform/downloads) **v1.3+** installed
+- [ ] Active Azure subscription with permissions to create resources
+- [ ] [Git for Windows](https://git-scm.com) 
+- [ ] A local directory to store Terraform files
+- [ ] Three Azure AD user accounts with the UPN in hand, to simulate real‑world RBAC personas: SysAdmin — Owner, SupportTech — VM Contributor, Auditor — Reader.
+
+
+To learn how to Install Terraform and connect it to your Azure susbscription, please check on: 
+
+[Terraform installation and connection to Azure](https://github.com/smarcecd/Terraform-Automation---Azure-Active-Directory-Domain-Controller/blob/main/Terraform%20Install%20and%20Azure%20connection.md)
 
 
 ---
@@ -103,61 +126,149 @@ validate-lab.ps1 — Confirms RBAC propagation and exports a permission matrix.
 
 ---
 
-# 🚀 Deployment Steps
+## 🚀 Deployment Guide
+---
 
-**1.** Verify Prerequisites
+### Step 1 — Clone This Repository to Your Project Folder
 
-```bash
-terraform -version   # >= 1.5.0
-az version
-az account show
-```
+Create a dedicated project folder with all Terraform files stored in the root directory. Place all PowerShell automation scripts inside a scripts/ subfolder. The configure-lab.ps1 orchestrator relies on this exact structure and calls each script using relative paths, so the layout must remain unchanged. 
 
-**2.** Create Project Folder
+To download this lab to your computer, run the following command in your terminal or PowerShell:
 
 ```powershell
-New-Item -ItemType Directory "$HOME\rbac-lab-terraform"
-cd "$HOME\rbac-lab-terraform"
-New-Item -ItemType Directory "scripts"
+git clone https://github.com/smarcecd/terraform-azure-rbac-lab.git
 ```
 
-**3.** Generate Object IDs
+This will create a folder named: **terraform-azure-rbac-lab** . Then navigate into it:
 
+```powershell
+cd terraform-azure-rbac-lab
+```
+You now have the full project locally and can begin exploring or deploying the Terraform lab.
+
+**NOTE:** Update **backend.tf** and replace "REPLACE_WITH_YOUR_STORAGE_ACCOUNT_NAME" with your actual storage account name fro
+
+---
+
+### Step 2 — Prepare the Identities for RBAC Testing
+
+As mentioned on the prerequisits, Three Azure AD user accounts to simulate real‑world RBAC personas: SysAdmin — Owner, SupportTech — VM Contributor, Auditor — Reader.
+
+You will need the **User principal name** or **UPN** of these three users. Once you have it, you can get the **Object ID** from the 01-get-object-ids.ps1 script.
+ 
 ```powershell
 .\scripts\01-get-object-ids.ps1
-Paste results into terraform.tfvars.
+#Paste results into terraform.tfvars.
 ```
 
-**4.** Initialize & Apply
+Alternatively, you can retrieve Object IDs manually from the **Azure Portal**:
+1. Search and open **Microsoft Entra ID**
+2. Select **Manage** → **Users**
+3. Click each user
+4. On the Overview page, copy the **Object ID**
 
-```bash
-terraform init
-terraform plan   # should show exactly 3 resources
-terraform apply
-```
+---
 
-**5.** Validate RBAC
+### Step 3 — Configure Variables
+
+Now update the configuration:
+- Open terraform.tfvars and and replace the placeholder values (REPLACE_WITH_SYSADMIN_OBJECT_ID) with the corresponding **Object IDs** for SysAdmin, SupportTech, and Auditor, the ones you retrieved in Step 2.
+- Ensure resource_group_name = "RG-FileServerLab" matches **Lab 1 NTFS File Server Lab (Azure + Terraform)** exactly.
+- Ensure vm_name = "FS01" matches Lab 1 exactly.
+
+Finally:  
+Open backend.tf and replace REPLACE_WITH_YOUR_LAB1_STORAGE_ACCOUNT_NAME with the actual storage account name created in **Lab 1 NTFS File Server Lab (Azure + Terraform)**.
+
+Then, Copy the example file into an active tfvars file:
 
 ```powershell
-.\validate-lab.ps1
-Exports: RBAC_Lab_Report.txt
+Copy-Item terraform.tfvars.example terraform.tfvars
 ```
 
 ---
 
-# 🧪 Testing Each Persona
+### Step 4 — Initialize & Apply
 
-**Auditor (Reader)**  
+- Authenticate your local machine to your Admin Azure account
+```powershell
+az login
+```
+- Deploy and validate: 
+```powershell
+terraform init
+```
+
+```powershell
+terraform plan
+```
+
+```powershell
+terraform apply
+```
+
+### Step 5 — Testing Each Persona
+
+**Auditor (Reader)** 
+
+Log in as your Auditor test account
+```powershell
+az login   
+```
+
 ✔ Can view VM details  
+```powershell
+az vm show -g RG-FileServerLab -n FS01 --query "{name:name,size:hardwareProfile.vmSize}"
+# Expected: SUCCEEDS — Reader can view VM details
+  
+```
+
 ✘ Cannot stop/start VM  
+```powershell
+az vm stop -g RG-FileServerLab -n FS01
+# Expected: FAILS — AuthorizationFailed
+# This failure confirms the Reader role is working. Auditor cannot stop VMs.
+```
+
 
 **SupportTech (VM Contributor)**  
+
+Log in as your SupportTech test account
+```powershell
+az login   
+```
+
 ✔ Can start/stop/restart VM  
+```powershell
+az vm start -g RG-FileServerLab -n FS01
+# Expected: SUCCEEDS — VM Contributor can start VMs  
+```
+
 ✘ Cannot view or modify RBAC  
+```powershell
+az role assignment list --scope $(az vm show -g RG-FileServerLab -n FS01 --query id -o tsv)
+# Expected: FAILS — AuthorizationFailed
+# SupportTech cannot view or manage RBAC assignments. 
+```
+
 
 **SysAdmin (Owner)**  
-✔ Full control  
+
+Log in as your SysAdmin test account
+```powershell
+az login   
+```
+
+✔ Full control 
+```powershell
+az vm show -g RG-FileServerLab -n FS01 --query "{name:name}"
+# Expected: SUCCEEDS
+```
+
 ✔ Can manage RBAC  
+```powershell
+az role assignment list --scope $(az vm show -g RG-FileServerLab -n FS01 --query id -o tsv)
+# Expected: SUCCEEDS — Owner can view and manage RBAC assignments
+```
 
 
 ---
