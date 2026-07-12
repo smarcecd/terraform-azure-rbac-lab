@@ -205,8 +205,27 @@ terraform plan
 ```powershell
 terraform apply
 ```
+---
 
-### Step 5 — Testing Each Persona
+### Step 5 - Run the Validation Script
+
+This step verifies that the RBAC roles deployed in the lab are correctly applied to the FS01 virtual machine. The script retrieves the VM’s resource ID, checks the live role assignments at the VM scope, prints a permission matrix, and exports a validation report (RBAC_Lab_Report.txt). A successful run should show ALL PASS.
+
+Run the script:
+
+```powershell
+.\validate-lab.ps1
+```    
+
+A successful validation will display:  
+Overall: ALL PASS
+
+And a report will be generated:
+RBAC_Lab_Report.txt
+
+---
+
+### Step 6 — Testing Each Persona
 
 **Auditor (Reader)** 
 
