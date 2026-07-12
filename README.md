@@ -231,6 +231,8 @@ RBAC_Lab_Report.txt
 
 ### Step 6 — Testing Each Persona
 
+[![lab2-2](https://github.com/user-attachments/assets/df891de1-6723-4e89-a897-c61f4c434e55)](https://www.loom.com/share/9b96fa12a7b043a4adb58b75d674a29f)
+
 **Auditor (Reader)** 
 
 Log in as your Auditor test account
