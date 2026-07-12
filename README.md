@@ -11,7 +11,7 @@
 
 This lab implements Azure Role-Based Access Control (RBAC) to enforce least privilege on a single virtual machine (FS01). While Lab 1 focused on NTFS permissions inside the VM, this lab controls who can manage the VM itself from Azure.
 
-You will create three personas, assign three roles, scope them to one VM, validate enforcement, and test each identity using the Azure CLI.
+You will use three user tio assign them each one role, scope them to one VM, validate enforcement, and test each identity using the Azure CLI.
 
 ---
 
