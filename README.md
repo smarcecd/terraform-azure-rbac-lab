@@ -170,7 +170,7 @@ Alternatively, you can retrieve Object IDs manually from the **Azure Portal**:
 ### Step 3 — Configure Variables
 
 Now update the configuration:
-- Open terraform.tfvars and and replace the placeholder values (REPLACE_WITH_SYSADMIN_OBJECT_ID) with the corresponding **Object IDs** for SysAdmin, SupportTech, and Auditor, the ones you retrieved in Step 2.
+- Open terraform.tfvars.example and and replace the placeholder values (REPLACE_WITH_SYSADMIN_OBJECT_ID) with the corresponding **Object IDs** for SysAdmin, SupportTech, and Auditor, the ones you retrieved in Step 2.
 - Ensure resource_group_name = "RG-FileServerLab" matches **Lab 1 NTFS File Server Lab (Azure + Terraform)** exactly.
 - Ensure vm_name = "FS01" matches Lab 1 exactly.
 
