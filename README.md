@@ -146,8 +146,6 @@ cd terraform-azure-rbac-lab
 ```
 You now have the full project locally and can begin exploring or deploying the Terraform lab.
 
-**NOTE:** Update **backend.tf** and replace "REPLACE_WITH_YOUR_STORAGE_ACCOUNT_NAME" with your actual storage account name fro
-
 ---
 
 ### Step 2 — Prepare the Identities for RBAC Testing
