@@ -127,6 +127,12 @@ validate-lab.ps1 — Confirms RBAC propagation and exports a permission matrix.
 ---
 
 ## 🚀 Deployment Guide
+
+
+Watch me doing this lab here:
+
+[![lab22](https://github.com/user-attachments/assets/6db74990-5e9f-4ef6-b85b-84991a7985e3)](https://www.loom.com/share/fbb792b5c8dc4739b760b835264e31f1)
+
 ---
 
 ### Step 1 — Clone This Repository to Your Project Folder
