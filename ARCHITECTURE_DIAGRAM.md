@@ -24,15 +24,8 @@ This lab demonstrates Azure Role-Based Access Control (RBAC) across multiple per
 resource scopes, and management layers. Terraform provisions all infrastructure, identities,
 and role assignments, enabling repeatable, auditable RBAC validation.
 
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│                        AZURE RBAC LAB                           │
-│                                                                 │
-│   Goal : Demonstrate least-privilege access across personas     │
-│   IaC  : Terraform  (azurerm + azuread providers)              │
-│   Scope: Management Group → Subscription → RG → Resource        │
-└─────────────────────────────────────────────────────────────────┘
-```
+<img width="1536" height="1024" alt="RBAC-roles" src="https://github.com/user-attachments/assets/ae36e77c-8e40-48b2-a6a0-02e101f48bb0" />
+
 
 
 ---
@@ -151,68 +144,19 @@ Subscription  (Owner → Lab Admin)
 └── sqldb-rbac   ◄──────────────── SQL DB Contributor             (Data Engineer)
 ```
 
-```text
-Scope Inheritance Direction
-─────────────────────────────
-Subscription
-│  ← roles flow DOWN
-▼
-Resource Group
-│
-▼
-Resource  ←── data-plane roles assigned HERE
-(do NOT inherit from ARM control-plane assignments)
-```
+<img width="1254" height="1254" alt="scope" src="https://github.com/user-attachments/assets/009e8912-3257-4019-a65f-4d9ee47cfc27" />
+
 
 
 ---
 
 ## 5. Control Plane Flow
 
-Every Azure API call travels through this authorization pipeline before an operation
-is allowed or denied.
+Every Azure API call travels through this authorization pipeline before an operation is allowed or denied.
 
-```text
-User / Service Principal / Managed Identity
-│
-│  (1) Authenticate
-▼
-┌────────────────────────┐
-│   Azure AD / Entra ID  │  Issues bearer token containing:
-│                        │  • User Object ID
-│                        │  • Group memberships
-└───────────┬────────────┘
-│  (2) Bearer Token attached to request
-▼
-┌────────────────────────────────────────────────┐
-│           Azure Resource Manager (ARM)          │
-│                                                │
-│  (3) Authorization evaluation:                 │
-│      a) Resolve all role assignments           │
-│         (direct + inherited from parent scope) │
-│      b) Compute effective permissions          │
-│         (union of grants minus deny assignments│
-│      c) Evaluate Azure Policy conditions       │
-│         (if applicable)                        │
-└───────────────────┬────────────────────────────┘
-│
-┌───────────┴───────────┐
-│                       │
-[PERMIT]               [DENY – HTTP 403]
-│                       │
-▼                       ▼
-┌───────────────┐       ┌───────────────────┐
-│   Resource    │       │  Error returned   │
-│   Operation   │       │  to caller        │
-│   Executed    │       └───────────────────┘
-└───────┬───────┘
-│  (4) Activity Log entry written
-▼
-┌───────────────────────────┐
-│  Log Analytics Workspace  │
-│  +  st-rbac-audit         │
-└───────────────────────────┘
-```
+<img width="1024" height="1536" alt="RBAC flow" src="https://github.com/user-attachments/assets/f29c53e4-34f4-4f83-9c90-41f4af26d1f1" />
+
+
 
 
 ### Key Authorization Concepts
@@ -326,18 +270,8 @@ terraform/
 
 
 ### Module Dependency Graph
-```text
-providers.tf
-│
-├──► resource-groups ─────────────────────────────────┐
-│          │                                          │
-│          ├──► networking                            │
-│          ├──► compute                               │
-│          ├──► data                                  │
-│          └──► security                              │
-│                    │                                │
-└───────────────────►└──► rbac ◄── (all scope IDs) ──┘
-```
+<img width="1536" height="1024" alt="providers" src="https://github.com/user-attachments/assets/80969faf-7659-4490-b51a-22b7b49af3bc" />
+
 
 
 > **Note:** The `rbac` module must run **after** all infrastructure modules complete,
@@ -348,27 +282,8 @@ providers.tf
 ## 8. RBAC Assignment Flow
 
 How Terraform provisions a role assignment end-to-end:
-```text
-┌────────────────────────────────────────────────────────────────────┐
-│  Terraform Execution                                               │
-│                                                                    │
-│  Step 1 ── azuread_user / azuread_group created                   │
-│                │                                                   │
-│  Step 2 ── Infrastructure modules complete                         │
-│            (RGs · VNet · SQL · Key Vault · Storage)               │
-│                │                                                   │
-│  Step 3 ── azurerm_role_assignment created                         │
-│            ┌──────────────────────────────────────────┐           │
-│            │  principal_id        = <object_id>       │           │
-│            │  role_definition_name = "Contributor"    │           │
-│            │  scope               = <resource_group_id>│          │
-│            └──────────────────────────────────────────┘           │
-│                │                                                   │
-│  Step 4 ── ARM replicates assignment globally (~seconds to 2 min) │
-│                │                                                   │
-│  Step 5 ── validate_rbac.sh tests effective permissions           │
-└────────────────────────────────────────────────────────────────────┘
-```
+<img width="1536" height="1024" alt="terrafom exec" src="https://github.com/user-attachments/assets/1024be08-91e1-4123-8cb9-ab643e4fa721" />
+
 
 ```text
 azurerm_role_assignment Resource Model
