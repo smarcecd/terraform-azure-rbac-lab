@@ -64,7 +64,7 @@ Before starting, ensure the following are ready:
 - [ ] [Terraform](https://developer.hashicorp.com/terraform/downloads) **v1.3+** installed
 - [ ] Active Azure subscription with permissions to create resources
 - [ ] [Git for Windows](https://git-scm.com) 
-- [ ] A local directory to store Terraform files
+- [ ] Have the infrastructe build on: [🗂️ Lab 1 - NTFS File Server Lab (Azure + Terraform)](https://github.com/smarcecd/ntfs-file-server-lab-azure/blob/main/README.md)
 - [ ] Three Azure AD user accounts with the UPN in hand, to simulate real‑world RBAC personas: SysAdmin — Owner, SupportTech — VM Contributor, Auditor — Reader.
 
 
